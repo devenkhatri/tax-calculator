@@ -5,11 +5,12 @@ A modern, production-ready React application for calculating GST and sales tax w
 ## Features
 
 ### Core Functionality
-- **Forward Tax Calculation**: Add tax to a base amount to calculate the total price
-- **Reverse Tax Extraction**: Extract base price and tax from a tax-inclusive amount
-- **Multiple Currencies**: Support for ₹ (INR), $ (USD), £ (GBP), and € (EUR)
-- **Preset Tax Rates**: Quick selection of common rates (5%, 12%, 18%, 28%)
-- **Custom Tax Rate**: Enter any custom tax rate
+- 🔄 **Bidirectional Calculation**: Calculate forward (Base + Tax) or reverse (Total - Tax)
+- 📝 **History Tracking**: Automatically saves your recent calculations
+- 🌓 **Dark Mode**: Seamless dark/light theme switching
+- ✨ **Interactive UI**: Smooth animations and responsive design
+- 💰 **Multi-currency Support**: Support for major global currencies like ₹ (INR), $ (USD), £ (GBP), and € (EUR)
+- 🎯 **Custom Tax Rates**: Use standard GST rates (5%, 12%, 18%, 28%) or define custom percentages
 - **Real-time Validation**: Input validation for negative values and non-numeric entries
 - **Currency Formatting**: Auto-formatted currency values
 

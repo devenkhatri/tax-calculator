@@ -13,6 +13,13 @@ import {
   validateInput,
   TaxCalculationResult,
 } from './utils/taxCalculator';
+import {
+  getHistory,
+  saveHistory,
+  clearHistory,
+  HistoryItem,
+} from './utils/history';
+import { HistoryList } from './components/HistoryList';
 
 function App() {
   const [amount, setAmount] = useState('');
@@ -23,6 +30,11 @@ function App() {
   const [customRate, setCustomRate] = useState('');
   const [result, setResult] = useState<TaxCalculationResult | null>(null);
   const [error, setError] = useState('');
+  const [history, setHistory] = useState<HistoryItem[]>([]);
+
+  useState(() => {
+    setHistory(getHistory());
+  });
 
   const handleCalculate = () => {
     if (!validateInput(amount)) {
@@ -33,13 +45,17 @@ function App() {
     setError('');
     const numAmount = parseFloat(amount);
 
+    let calcResult: TaxCalculationResult;
+
     if (mode === 'forward') {
-      const calcResult = calculateForwardTax(numAmount, taxRate);
-      setResult(calcResult);
+      calcResult = calculateForwardTax(numAmount, taxRate);
     } else {
-      const calcResult = calculateReverseTax(numAmount, taxRate);
-      setResult(calcResult);
+      calcResult = calculateReverseTax(numAmount, taxRate);
     }
+
+    setResult(calcResult);
+    const newHistory = saveHistory(calcResult, currency.symbol, mode);
+    setHistory(newHistory);
   };
 
   const handleReset = () => {
@@ -50,6 +66,11 @@ function App() {
     setMode('forward');
     setResult(null);
     setError('');
+  };
+
+  const handleClearHistory = () => {
+    clearHistory();
+    setHistory([]);
   };
 
   return (
@@ -72,91 +93,96 @@ function App() {
           <ThemeToggle />
         </div>
 
-        <div className="grid lg:grid-cols-2 gap-8">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-xl border border-gray-200 dark:border-gray-700">
-            <h2 className="text-xl font-semibold mb-6 text-gray-900 dark:text-white">
-              Input Details
-            </h2>
+        <div className="grid lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2 space-y-8">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-xl border border-gray-200 dark:border-gray-700">
+              <h2 className="text-xl font-semibold mb-6 text-gray-900 dark:text-white">
+                Input Details
+              </h2>
 
-            <div className="space-y-6">
-              <ToggleMode mode={mode} onChange={setMode} />
+              <div className="space-y-6">
+                <ToggleMode mode={mode} onChange={setMode} />
 
-              <NumericInput
-                label={mode === 'forward' ? 'Base Amount' : 'Total Amount (Tax Included)'}
-                value={amount}
-                onChange={setAmount}
-                prefix={currency.symbol}
-                error={error}
-              />
+                <NumericInput
+                  label={mode === 'forward' ? 'Base Amount' : 'Total Amount (Tax Included)'}
+                  value={amount}
+                  onChange={setAmount}
+                  prefix={currency.symbol}
+                  error={error}
+                />
 
-              <CurrencySelector value={currency} onChange={setCurrency} />
+                <CurrencySelector value={currency} onChange={setCurrency} />
 
-              <SelectTaxRate
-                value={taxRate}
-                onChange={setTaxRate}
-                useCustom={useCustomRate}
-                onToggleCustom={setUseCustomRate}
-                customValue={customRate}
-                onCustomChange={setCustomRate}
-              />
+                <SelectTaxRate
+                  value={taxRate}
+                  onChange={setTaxRate}
+                  useCustom={useCustomRate}
+                  onToggleCustom={setUseCustomRate}
+                  customValue={customRate}
+                  onCustomChange={setCustomRate}
+                />
 
-              <div className="flex gap-3 pt-4">
-                <button
-                  onClick={handleCalculate}
-                  className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all shadow-lg shadow-blue-500/30"
-                >
-                  <Calculator size={18} />
-                  Calculate
-                </button>
-                <button
-                  onClick={handleReset}
-                  className="px-6 py-3 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-semibold rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-all"
-                  aria-label="Reset"
-                >
-                  <RotateCcw size={18} />
-                </button>
+                <div className="flex gap-3 pt-4">
+                  <button
+                    onClick={handleCalculate}
+                    className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all shadow-lg shadow-blue-500/30"
+                  >
+                    <Calculator size={18} />
+                    Calculate
+                  </button>
+                  <button
+                    onClick={handleReset}
+                    className="px-6 py-3 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-semibold rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-all"
+                    aria-label="Reset"
+                  >
+                    <RotateCcw size={18} />
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-xl border border-gray-200 dark:border-gray-700">
+              <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">
+                How It Works
+              </h3>
+              <div className="grid md:grid-cols-2 gap-6 text-sm text-gray-600 dark:text-gray-400">
+                <div>
+                  <h4 className="font-semibold text-gray-900 dark:text-white mb-2">
+                    Forward Tax Calculation
+                  </h4>
+                  <p className="mb-2">
+                    Add tax to a base amount to get the total price.
+                  </p>
+                  <code className="block bg-gray-100 dark:bg-gray-900 p-3 rounded text-xs">
+                    Tax = Base × (Rate / 100)
+                    <br />
+                    Total = Base + Tax
+                  </code>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-gray-900 dark:text-white mb-2">
+                    Reverse Tax Extraction
+                  </h4>
+                  <p className="mb-2">
+                    Extract the base price and tax from a tax-inclusive amount.
+                  </p>
+                  <code className="block bg-gray-100 dark:bg-gray-900 p-3 rounded text-xs">
+                    Base = Total / (1 + Rate/100)
+                    <br />
+                    Tax = Total - Base
+                  </code>
+                </div>
               </div>
             </div>
           </div>
 
-          <div>
+          <div className="space-y-8">
             <ResultCard result={result} currencySymbol={currency.symbol} />
+            <HistoryList history={history} onClear={handleClearHistory} />
           </div>
         </div>
 
-        <div className="mt-8 bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-xl border border-gray-200 dark:border-gray-700">
-          <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">
-            How It Works
-          </h3>
-          <div className="grid md:grid-cols-2 gap-6 text-sm text-gray-600 dark:text-gray-400">
-            <div>
-              <h4 className="font-semibold text-gray-900 dark:text-white mb-2">
-                Forward Tax Calculation
-              </h4>
-              <p className="mb-2">
-                Add tax to a base amount to get the total price.
-              </p>
-              <code className="block bg-gray-100 dark:bg-gray-900 p-3 rounded text-xs">
-                Tax = Base × (Rate / 100)
-                <br />
-                Total = Base + Tax
-              </code>
-            </div>
-            <div>
-              <h4 className="font-semibold text-gray-900 dark:text-white mb-2">
-                Reverse Tax Extraction
-              </h4>
-              <p className="mb-2">
-                Extract the base price and tax from a tax-inclusive amount.
-              </p>
-              <code className="block bg-gray-100 dark:bg-gray-900 p-3 rounded text-xs">
-                Base = Total / (1 + Rate/100)
-                <br />
-                Tax = Total - Base
-              </code>
-            </div>
-          </div>
-        </div>
+
       </div>
     </div>
   );
