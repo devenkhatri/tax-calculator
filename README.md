@@ -1,4 +1,4 @@
-# GST / Sales Tax Calculator
+# Tax Calculator
 
 A modern, production-ready React application for calculating GST and sales tax with both forward and reverse calculation modes.
 

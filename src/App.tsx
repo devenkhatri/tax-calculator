@@ -83,10 +83,10 @@ function App() {
             </div>
             <div>
               <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-                GST Calculator
+                Tax Calculator
               </h1>
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                Calculate sales tax with precision
+                Calculate tax with precision
               </p>
             </div>
           </div>
